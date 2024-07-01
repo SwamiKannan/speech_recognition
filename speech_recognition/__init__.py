@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+#### CREDIT FOR CUSTOMIZING WHISPER for recognize_distilwhisper() and recognize_fasterwhisper : https://github.com/Uberi/speech_recognition/issues/730 by https://github.com/sujitvasanth
+
 """Library for performing speech recognition, with support for several engines and APIs, online and offline."""
 
 from __future__ import annotations
@@ -1429,23 +1431,28 @@ class Recognizer(AudioSource):
         torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
         model_id = "distil-whisper/distil-small.en"
         model_name = model_id.split('/')[1]
-        model_cache_path = MODEL_PATH+model_name
-        tokenizer_cache_path = TOKENIZER_PATH+model_name
+        if MODEL_PATH:
+            model_cache_path = MODEL_PATH+model_name
+            tokenizer_cache_path = TOKENIZER_PATH+model_name
        
         if not self.model:
             model = AutoModelForSpeechSeq2Seq.from_pretrained(
-                model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True, cache_dir = model_cache_path)
+                model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True, cache_dir = model_cache_path) if MODEL_PATH else \
+                AutoModelForSpeechSeq2Seq.from_pretrained(
+                model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True)
             model.to(device)
-            processor = AutoProcessor.from_pretrained(model_id, cache_dir=tokenizer_cache_path)
+            processor = AutoProcessor.from_pretrained(model_id, cache_dir=tokenizer_cache_path) if TOKENIZER_PATH else \
+            processor = AutoProcessor.from_pretrained(model_id)
             
             whisper = pipeline(
                 "automatic-speech-recognition",model=model,tokenizer=processor.tokenizer,
                 feature_extractor=processor.feature_extractor,max_new_tokens=128,
                 torch_dtype=torch_dtype,device=device)
-            if not os.path.exists(tokenizer_cache_path):
+            if not TOKENIZER_PATH and os.path.exists(tokenizer_cache_path):
                 processor.save_pretrained(tokenizer_cache_path)
             if not os.path.exists(model_cache_path):
                 model.save_pretrained(model_cache_path)
+                
         wav_bytes = audio_data.get_wav_data(convert_rate=16000)
         wav_stream = io.BytesIO(wav_bytes)
         audio_array, sampling_rate = sf.read(wav_stream)

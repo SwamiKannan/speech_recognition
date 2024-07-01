@@ -47,6 +47,7 @@ __license__ = "BSD"
 
 MODEL_PATH = 'N:\\models\\voice\\model\\'
 TOKENIZER_PATH = 'N:\\models\\voice\\tokenizer\\'
+from model import get_whisper_model
 
 class AudioSource(object):
     def __init__(self):
@@ -328,7 +329,7 @@ class AudioFile(AudioSource):
 
 
 class Recognizer(AudioSource):
-    def __init__(self, model = None):
+    def __init__(self, common_model = False):
         """
         Creates a new ``Recognizer`` instance, which represents a collection of speech recognition functionality.
         """
@@ -341,7 +342,8 @@ class Recognizer(AudioSource):
 
         self.phrase_threshold = 0.3  # minimum seconds of speaking audio before we consider the speaking audio a phrase - values below this are ignored (for filtering out clicks and pops)
         self.non_speaking_duration = 0.5  # seconds of non-speaking audio to keep on both sides of the recording
-        self.model = model
+        if common_model:
+            self.model = get_whisper_model()
 
     def record(self, source, duration=None, offset=None):
         """
@@ -1448,9 +1450,9 @@ class Recognizer(AudioSource):
                 "automatic-speech-recognition",model=model,tokenizer=processor.tokenizer,
                 feature_extractor=processor.feature_extractor,max_new_tokens=128,
                 torch_dtype=torch_dtype,device=device)
-            if not TOKENIZER_PATH and os.path.exists(tokenizer_cache_path):
+            if TOKENIZER_PATH and not os.path.exists(tokenizer_cache_path):
                 processor.save_pretrained(tokenizer_cache_path)
-            if not os.path.exists(model_cache_path):
+            if MODEL_PATH and not os.path.exists(model_cache_path):
                 model.save_pretrained(model_cache_path)
                 
         wav_bytes = audio_data.get_wav_data(convert_rate=16000)
@@ -1459,13 +1461,11 @@ class Recognizer(AudioSource):
         audio_array = audio_array.astype(np.float16)
         
         if not self.model:
-            print('Imported whisper not detected')
             text = whisper(audio_array,
                             chunk_length_s=50,
                             stride_length_s=10,
                             batch_size=8)
         else:
-            print('Imported whisper HAS BEEN DETECTED')
             text = self.model(audio_array,
                             chunk_length_s=50,
                             stride_length_s=10,

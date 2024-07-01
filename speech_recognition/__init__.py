@@ -48,7 +48,7 @@ __license__ = "BSD"
 MODEL_PATH = 'N:\\models\\voice\\model\\'
 TOKENIZER_PATH = 'N:\\models\\voice\\tokenizer\\'
 from model import get_whisper_model
-
+whisper_model = get_whisper_model()
 class AudioSource(object):
     def __init__(self):
         raise NotImplementedError("this is an abstract class")
@@ -343,7 +343,7 @@ class Recognizer(AudioSource):
         self.phrase_threshold = 0.3  # minimum seconds of speaking audio before we consider the speaking audio a phrase - values below this are ignored (for filtering out clicks and pops)
         self.non_speaking_duration = 0.5  # seconds of non-speaking audio to keep on both sides of the recording
         if common_model:
-            self.model = get_whisper_model()
+            self.model = whisper_model
 
     def record(self, source, duration=None, offset=None):
         """

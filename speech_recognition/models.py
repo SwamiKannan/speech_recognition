@@ -3,8 +3,8 @@ import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline, logging, AutoTokenizer
 
 
-WHISPER_MODEL_PATH = 'N:\\models\\voice\\model\\'
-WHISPER_TOKENIZER_PATH = 'N:\\models\\voice\\tokenizer\\'
+WHISPER_MODEL_PATH = None
+WHISPER_TOKENIZER_PATH = None
 
 def get_whisper_model(model_id='distil-whisper/distil-small.en'):
     device = "cuda:0" if torch.cuda.is_available() else "cpu"

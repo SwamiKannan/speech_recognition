@@ -1,6 +1,8 @@
-### Additional contributions in this repo:
-1. Code for faster-whisper and distilwhisper added based on this issue resolutiomn by [Sujith Vasanth](https://github.com/sujitvasanth)
-2. Added a function 
+### Additional contributions in this repo: 
+
+1. Code for faster-whisper and distilwhisper added based on [this issue](https://github.com/Uberi/speech_recognition/issues/730) resolution by [Sujith Vasanth](https://github.com/sujitvasanth)
+2. Added a functionality to create multiple recognizer objects using the same model. Currently, everytime we create a new Recognizer object, we need to create a new instance of the LLM model to go with it. This function adds a self.model to the Recognizer class. This self.model is instantiated using the [models.py](https://github.com/SwamiKannan/speech_recognition/blob/master/speech_recognition/models.py) function.
+3. Will add implementation of separate recorder objects soon.
 
 
 SpeechRecognition

@@ -1,3 +1,8 @@
+### Additional contributions in this repo:
+1. Code for faster-whisper and distilwhisper added based on this issue resolutiomn by [Sujith Vasanth](https://github.com/sujitvasanth)
+2. Added a function 
+
+
 SpeechRecognition
 =================
 

@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-#### CREDIT FOR CUSTOMIZING WHISPER for recognize_distilwhisper() and recognize_fasterwhisper : https://github.com/Uberi/speech_recognition/issues/730 by https://github.com/sujitvasanth
-
 """Library for performing speech recognition, with support for several engines and APIs, online and offline."""
 
 from __future__ import annotations
@@ -46,9 +44,8 @@ __version__ = "3.10.4"
 __license__ = "BSD"
 
 MODEL_PATH = 'D:\\hf_models\\STT\\model\\'
-TOKENIZER_PATH = 'D:\\hf_models\\STT\\tokenizer\\'
-from model import get_whisper_model
-whisper_model = get_whisper_model()
+TOKENIZER_PATH = "D:\\hf_models\\STT\\tokenizer"
+
 class AudioSource(object):
     def __init__(self):
         raise NotImplementedError("this is an abstract class")
@@ -329,7 +326,7 @@ class AudioFile(AudioSource):
 
 
 class Recognizer(AudioSource):
-    def __init__(self, common_model = True):
+    def __init__(self, model = None):
         """
         Creates a new ``Recognizer`` instance, which represents a collection of speech recognition functionality.
         """
@@ -342,8 +339,7 @@ class Recognizer(AudioSource):
 
         self.phrase_threshold = 0.3  # minimum seconds of speaking audio before we consider the speaking audio a phrase - values below this are ignored (for filtering out clicks and pops)
         self.non_speaking_duration = 0.5  # seconds of non-speaking audio to keep on both sides of the recording
-        if common_model:
-            self.model = whisper_model
+        self.model = model
 
     def record(self, source, duration=None, offset=None):
         """
@@ -1433,41 +1429,36 @@ class Recognizer(AudioSource):
         torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
         model_id = "distil-whisper/distil-small.en"
         model_name = model_id.split('/')[1]
-        if MODEL_PATH:
-            model_cache_path = MODEL_PATH+model_name
-            tokenizer_cache_path = TOKENIZER_PATH+model_name
+        model_cache_path = MODEL_PATH+model_name
+        tokenizer_cache_path = TOKENIZER_PATH+model_name
        
         if not self.model:
             model = AutoModelForSpeechSeq2Seq.from_pretrained(
-                model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True, cache_dir = model_cache_path) if MODEL_PATH else \
-                AutoModelForSpeechSeq2Seq.from_pretrained(
-                model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True)
+                model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True, cache_dir = model_cache_path)
             model.to(device)
-            if TOKENIZER_PATH:
-                processor = AutoProcessor.from_pretrained(model_id, cache_dir=tokenizer_cache_path)
-            else:
-                processor = AutoProcessor.from_pretrained(model_id)
+            processor = AutoProcessor.from_pretrained(model_id, cache_dir=tokenizer_cache_path)
             
             whisper = pipeline(
                 "automatic-speech-recognition",model=model,tokenizer=processor.tokenizer,
                 feature_extractor=processor.feature_extractor,max_new_tokens=128,
                 torch_dtype=torch_dtype,device=device)
-            if TOKENIZER_PATH and not os.path.exists(tokenizer_cache_path):
+            if not os.path.exists(tokenizer_cache_path):
                 processor.save_pretrained(tokenizer_cache_path)
-            if MODEL_PATH and not os.path.exists(model_cache_path):
+            if not os.path.exists(model_cache_path):
                 model.save_pretrained(model_cache_path)
-                
         wav_bytes = audio_data.get_wav_data(convert_rate=16000)
         wav_stream = io.BytesIO(wav_bytes)
         audio_array, sampling_rate = sf.read(wav_stream)
         audio_array = audio_array.astype(np.float16)
         
         if not self.model:
+            print('Imported whisper not detected')
             text = whisper(audio_array,
                             chunk_length_s=50,
                             stride_length_s=10,
                             batch_size=8)
         else:
+            print('Imported whisper HAS BEEN DETECTED')
             text = self.model(audio_array,
                             chunk_length_s=50,
                             stride_length_s=10,

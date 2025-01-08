@@ -45,8 +45,8 @@ __author__ = "Anthony Zhang (Uberi)"
 __version__ = "3.10.4"
 __license__ = "BSD"
 
-MODEL_PATH = 'N:\\models\\voice\\model\\'
-TOKENIZER_PATH = 'N:\\models\\voice\\tokenizer\\'
+MODEL_PATH = 'D:\\hf_models\\STT\\model\\'
+TOKENIZER_PATH = 'D:\\hf_models\\STT\\tokenizer\\'
 from model import get_whisper_model
 whisper_model = get_whisper_model()
 class AudioSource(object):
@@ -329,7 +329,7 @@ class AudioFile(AudioSource):
 
 
 class Recognizer(AudioSource):
-    def __init__(self, common_model = False):
+    def __init__(self, common_model = True):
         """
         Creates a new ``Recognizer`` instance, which represents a collection of speech recognition functionality.
         """
@@ -1443,8 +1443,10 @@ class Recognizer(AudioSource):
                 AutoModelForSpeechSeq2Seq.from_pretrained(
                 model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True)
             model.to(device)
-            processor = AutoProcessor.from_pretrained(model_id, cache_dir=tokenizer_cache_path) if TOKENIZER_PATH else \
-            processor = AutoProcessor.from_pretrained(model_id)
+            if TOKENIZER_PATH:
+                processor = AutoProcessor.from_pretrained(model_id, cache_dir=tokenizer_cache_path)
+            else:
+                processor = AutoProcessor.from_pretrained(model_id)
             
             whisper = pipeline(
                 "automatic-speech-recognition",model=model,tokenizer=processor.tokenizer,
